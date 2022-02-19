@@ -1,0 +1,47 @@
+name: Golang workflow
+
+on:
+  push:
+    paths-ignore:
+      - '**/README.md'
+      - '**/.gitignore'
+    branches: ['**']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.15'
+      - name: Fmt
+        run: make fmt
+      - name: Test
+        run: make test
+      - name: Coverage
+        run: make coverage
+      - name: Build
+        run: make build
+
+  docker-build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build image
+        run: make docker-build
+
+  publish:
+    environment: production
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag' || github.ref_name == 'main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Show image tag
+        run: echo $TAG
+      - name: Publisher the image
+        run: echo $"Publishing the image"
